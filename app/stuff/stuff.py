@@ -1,12 +1,14 @@
 # stuff.py
+# -*- coding: utf-8 -*-
 
 import random
+import app.utils.upsidedown.upsidedown as upsidedown
 from . import stuff_mod
 
 
 @stuff_mod.register_cmd(r'^!flip')
 @stuff_mod.register_cmd(r'^!(coin)?toss')
-def cointoss(data):
+def cointoss(_):
     coin = "HEADS" if random.randint(1, 100) <= 50 else "TAILS"
     return "The coin landed on: `{}`".format(coin)
 
@@ -20,14 +22,18 @@ def roll(data):
         except ValueError:
             return "2nd parameter must be an integer greater than 0"
         else:
-            return "Rolling a dice with {} faces resulted in: `{}`".format(cmd[1], result)
+            return "You roll: `{}`".format(result)
     else:
         return "Proper usage is: `!roll <number>`"
 
 
 @stuff_mod.register_cmd(r'^!tableflip')
 def tableflip(data):
-    pass
+    cmd = data['text'].split()
+    if len(cmd) == 1:
+        return u'(╯°□°）╯︵ ┻━┻'
+    else:
+        return u'（╯°□°）╯︵ {}'.format(upsidedown.transform(" ".join(cmd[1:])))
 
 
 @stuff_mod.register_cmd(r'^!insult')
