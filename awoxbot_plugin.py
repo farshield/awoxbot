@@ -13,7 +13,8 @@ def post_message(channel, message):
     :param message: Message to be sent
     :return:
     """
-    outputs.append([channel, message])
+    if message:
+        outputs.append([channel, message])
 
 awoxbot = create_app(post_message)
 
@@ -33,4 +34,4 @@ def process_message(data):
     :param data:
     :return:
     """
-    awoxbot.process_command(data['channel'], data['user'], data['text'])
+    awoxbot.process_command(data)

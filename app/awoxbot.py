@@ -15,13 +15,14 @@ class AwoxBot:
         module.app = self
         self.module_list.append(module)
 
-    def process_command(self, channel, user, text):
+    def process_command(self, data):
         for module in self.module_list:
             for command in module.command_map:
-                if re.search(command, text, re.IGNORECASE):
+                # try to find matching command
+                if re.search(command, data['text'], re.IGNORECASE):
                     callback = module.command_map[command]
                     if callable(callback):
-                        return callback(channel, user, text)
+                        self.post_message(data['channel'], callback(data))
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
         command = raw_input('> ')
         if not command:
             break
-        awoxbot.process_command('DEBUG', None, command)
+        awoxbot.process_command({'channel': 'Debug', 'user': None, 'text': command})
 
 if __name__ == "__main__":
     main()
