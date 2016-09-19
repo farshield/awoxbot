@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import random
+import requests
 import app.utils.upsidedown.upsidedown as upsidedown
 from . import stuff_mod
 
@@ -38,4 +39,18 @@ def tableflip(data):
 
 @stuff_mod.register_cmd(r'^!insult')
 def insult(data):
-    pass
+    message = ""
+    cmd = data['text'].split()
+    try:
+        result = requests.get(
+            url='http://quandyfactory.com/insult/json',
+            timeout=3
+        )
+    except requests.exceptions.RequestException:
+        return 'I have somehow lost the ability to insult people'
+    if result.status_code != 200:
+        return 'My insult generator is broken :('
+
+    if cmd[1:]:
+        message = "{}: ".format(" ".join(cmd[1:]))
+    return message + result.json()['insult']
