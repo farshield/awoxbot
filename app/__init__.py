@@ -3,6 +3,7 @@
 from .awoxbot import AwoxBot
 from hello import hello_mod
 from stuff import stuff_mod
+from market import market_mod
 
 
 def create_app(post_message):
@@ -14,4 +15,5 @@ def create_app(post_message):
     awoxbot_app = AwoxBot(post_message)
     awoxbot_app.register_module(hello_mod)
     awoxbot_app.register_module(stuff_mod)
+    awoxbot_app.register_module(market_mod)
     return awoxbot_app
