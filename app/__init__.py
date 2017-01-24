@@ -16,4 +16,5 @@ def create_app(post_message):
     awoxbot_app.register_module(hello_mod)
     awoxbot_app.register_module(stuff_mod)
     awoxbot_app.register_module(market_mod)
+    awoxbot_app.monitor_reddit()
     return awoxbot_app

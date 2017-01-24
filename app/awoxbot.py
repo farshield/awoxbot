@@ -1,6 +1,8 @@
 # awoxbot.py
 
+import threading
 import re
+from utils.reddit import reddit
 
 
 class AwoxBot:
@@ -10,6 +12,8 @@ class AwoxBot:
     def __init__(self, post_message):
         self.post_message = post_message  # callback
         self.module_list = []
+        self.reddit_channel = None
+        self.reddit_limit = 2560  # number of characters in one post
 
     def register_module(self, module):
         module.app = self
@@ -23,6 +27,31 @@ class AwoxBot:
                     callback = module.command_map[command]
                     if callable(callback):
                         self.post_message(data['channel'], callback(data))
+
+    def display_reddit_salt(self, content):
+        display_message = ""
+
+        for item in content:
+            item_type = item[0]
+            url = item[3]
+            title = item[4]
+            text = item[5]
+
+            if item_type == 'post':
+                display_message += "New post `{}` - `{}`\n".format(title, url)
+                display_message += "```{}```\n".format(text[:self.reddit_limit])
+            elif item_type == 'comment':
+                display_message += "New comment in `{}` - `{}`\n".format(title, url)
+                display_message += "```{}```\n".format(text[:self.reddit_limit])
+
+        if display_message:
+            self.post_message(self.reddit_channel, display_message)
+
+    def monitor_reddit(self):
+        self.reddit_channel = reddit.reddit_channel_name()
+        reddit_thread = threading.Thread(target=reddit.reddit_main, args=(self.display_reddit_salt,))
+        reddit_thread.daemon = True
+        reddit_thread.start()
 
 
 def main():

@@ -1,0 +1,9 @@
+development: False
+channel: '#reddit'
+post_enabled: False
+comment_enabled: False
+keyword_list:
+    - 'key1'
+    - 'key2'
+post_limit: 5
+cycle_time: 10
