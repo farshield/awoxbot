@@ -6,6 +6,7 @@ import time
 import re
 from operator import itemgetter
 import yaml
+import logging
 import requests
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -44,48 +45,58 @@ def reddit_get_salt(
 
     # get new posts
     if post_enabled:
-        result = requests.get(
-            url='https://www.reddit.com/r/Eve/new/.json?limit={}'.format(post_limit),
-            headers={'User-Agent': USER_AGENT},
-            timeout=3
-        )
-        posts_json = result.json()['data']['children']
-        first_post_id = base36decode(posts_json[0]['data']['id'].encode('ascii', 'ignore'))
+        try:
+            result = requests.get(
+                url='https://www.reddit.com/r/Eve/new/.json?limit={}'.format(post_limit),
+                headers={'User-Agent': USER_AGENT},
+                timeout=3
+            )
+        except requests.exceptions.RequestException:
+            logging.warning("[Requests] error when trying to fetch new posts")
+        else:
+            if result.status_code == 200:
+                posts_json = result.json()['data']['children']
+                first_post_id = base36decode(posts_json[0]['data']['id'].encode('ascii', 'ignore'))
 
-        for child in posts_json:
-            post_id = base36decode(child['data']['id'].encode('ascii', 'ignore'))
-            if post_id > last_post_id:
-                created = int(child['data']['created_utc'])
-                permalink = "https://www.reddit.com" + child['data']['permalink']
-                post_title = child['data']['title']
-                text = child['data']['selftext']
-                if keyword_list is None or find_keywords(keyword_list, text):
-                    new_content.append(('post', post_id, created, permalink, post_title, text))
+                for child in posts_json:
+                    post_id = base36decode(child['data']['id'].encode('ascii', 'ignore'))
+                    if post_id > last_post_id:
+                        created = int(child['data']['created_utc'])
+                        permalink = "https://www.reddit.com" + child['data']['permalink']
+                        post_title = child['data']['title']
+                        text = child['data']['selftext']
+                        if keyword_list is None or find_keywords(keyword_list, text):
+                            new_content.append(('post', post_id, created, permalink, post_title, text))
 
     time.sleep(.2)
 
     # get new comments
     if comment_enabled:
-        result = requests.get(
-            url='https://www.reddit.com/r/Eve/comments/.json?limit={}'.format(post_limit),
-            headers={'User-Agent': USER_AGENT},
-            timeout=3
-        )
-        comments_json = result.json()['data']['children']
-        first_comment_id = base36decode(comments_json[0]['data']['id'].encode('ascii', 'ignore'))
+        try:
+            result = requests.get(
+                url='https://www.reddit.com/r/Eve/comments/.json?limit={}'.format(post_limit),
+                headers={'User-Agent': USER_AGENT},
+                timeout=3
+            )
+        except requests.exceptions.RequestException:
+            logging.warning("[Requests] error when trying to fetch new comments")
+        else:
+            if result.status_code == 200:
+                comments_json = result.json()['data']['children']
+                first_comment_id = base36decode(comments_json[0]['data']['id'].encode('ascii', 'ignore'))
 
-        for child in comments_json:
-            comment_id = base36decode(child['data']['id'].encode('ascii', 'ignore'))
-            if comment_id > last_comment_id:
-                created = int(child['data']['created_utc'])
-                permalink = "https://reddit.com/r/Eve/comments/{}//{}/".format(
-                    child['data']['link_id'][3:],
-                    child['data']['id']
-                )
-                parent_title = child['data']['link_title']
-                text = child['data']['body']
-                if keyword_list is None or find_keywords(keyword_list, text):
-                    new_content.append(('comment', comment_id, created, permalink, parent_title, text))
+                for child in comments_json:
+                    comment_id = base36decode(child['data']['id'].encode('ascii', 'ignore'))
+                    if comment_id > last_comment_id:
+                        created = int(child['data']['created_utc'])
+                        permalink = "https://reddit.com/r/Eve/comments/{}//{}/".format(
+                            child['data']['link_id'][3:],
+                            child['data']['id']
+                        )
+                        parent_title = child['data']['link_title']
+                        text = child['data']['body']
+                        if keyword_list is None or find_keywords(keyword_list, text):
+                            new_content.append(('comment', comment_id, created, permalink, parent_title, text))
 
     return sorted(new_content, key=itemgetter(2)), first_post_id, first_comment_id
 
