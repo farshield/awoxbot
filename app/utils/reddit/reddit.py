@@ -63,10 +63,16 @@ def reddit_get_salt(
                     if post_id > last_post_id:
                         created = int(child['data']['created_utc'])
                         permalink = "https://www.reddit.com" + child['data']['permalink']
+                        author = child['data']['author']
                         post_title = child['data']['title']
                         text = child['data']['selftext']
-                        if keyword_list is None or find_keywords(keyword_list, text):
-                            new_content.append(('post', post_id, created, permalink, post_title, text))
+
+                        post_data = ('post', post_id, created, permalink, author, post_title, text)
+                        if keyword_list:
+                            if find_keywords(keyword_list, post_title) or find_keywords(keyword_list, text):
+                                new_content.append(post_data)
+                        else:
+                            new_content.append(post_data)
 
     time.sleep(.2)
 
@@ -89,14 +95,20 @@ def reddit_get_salt(
                     comment_id = base36decode(child['data']['id'].encode('ascii', 'ignore'))
                     if comment_id > last_comment_id:
                         created = int(child['data']['created_utc'])
-                        permalink = "https://reddit.com/r/Eve/comments/{}//{}/".format(
+                        permalink = "https://reddit.com/r/Eve/comments/{}/comment/{}/".format(
                             child['data']['link_id'][3:],
                             child['data']['id']
                         )
                         parent_title = child['data']['link_title']
+                        author = child['data']['author']
                         text = child['data']['body']
-                        if keyword_list is None or find_keywords(keyword_list, text):
-                            new_content.append(('comment', comment_id, created, permalink, parent_title, text))
+
+                        comment_data = ('comment', comment_id, created, permalink, author, parent_title, text)
+                        if keyword_list:
+                            if find_keywords(keyword_list, text):
+                                new_content.append(comment_data)
+                        else:
+                            new_content.append(comment_data)
 
     return sorted(new_content, key=itemgetter(2)), first_post_id, first_comment_id
 

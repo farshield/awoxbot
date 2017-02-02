@@ -13,7 +13,7 @@ class AwoxBot:
         self.post_message = post_message  # callback
         self.module_list = []
         self.reddit_channel = None
-        self.reddit_limit = 2560  # number of characters in one post
+        self.reddit_limit = 3072  # number of characters in one post
 
     def register_module(self, module):
         module.app = self
@@ -32,16 +32,21 @@ class AwoxBot:
         display_message = ""
 
         for item in content:
+            # post_data = ('post', post_id, created, permalink, author, post_title, text)
             item_type = item[0]
             url = item[3]
-            title = item[4]
-            text = item[5]
+            author = item[4]
+            title = item[5]
+            text = item[6]
+
+            if len(text) > self.reddit_limit:
+                display_message += "*[Text limited to {} chars]* ".format(self.reddit_limit)
 
             if item_type == 'post':
-                display_message += "New post `{}` - `{}`\n".format(title, url)
+                display_message += "New post `{}` by `{}` - `{}`\n".format(title, author, url)
                 display_message += "```{}```\n".format(text[:self.reddit_limit])
             elif item_type == 'comment':
-                display_message += "New comment in `{}` - `{}`\n".format(title, url)
+                display_message += "New comment by `{}` in `{}` - `{}`\n".format(author, title, url)
                 display_message += "```{}```\n".format(text[:self.reddit_limit])
 
         if display_message:
