@@ -25,12 +25,6 @@ def find_keywords(keyword_list, text):
     return False
 
 
-def reddit_channel_name():
-    with open(os.path.join(BASEDIR, 'reddit.conf')) as config_file:
-        config_data = yaml.safe_load(config_file)
-    return config_data['channel']
-
-
 def reddit_get_salt(
         keyword_list=None,
         post_enabled=True,
@@ -133,16 +127,18 @@ def reddit_main(display_content):
             last_comment_id=last_comment_id,
             post_limit=config_data['post_limit']
         )
+        slack_channel = config_data['slack_channel']
+        body_limit = config_data['body_limit']
 
         last_post_id = first_post_id
         last_comment_id = first_comment_id
 
         if new_content:
-            display_content(new_content)
+            display_content(new_content, slack_channel, body_limit)
         time.sleep(config_data['cycle_time'])
 
 
-def display_content_simple(content):
+def display_content_simple(content, *_):
     for items in content:
         print items
 

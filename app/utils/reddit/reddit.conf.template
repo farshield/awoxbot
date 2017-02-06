@@ -1,5 +1,5 @@
 development: False
-channel: '#reddit'
+slack_channel: '#reddit'
 post_enabled: False
 comment_enabled: False
 keyword_list:
@@ -7,3 +7,4 @@ keyword_list:
     - 'key2'
 post_limit: 5
 cycle_time: 10
+body_limit: 3072

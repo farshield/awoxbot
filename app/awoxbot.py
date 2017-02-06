@@ -12,8 +12,6 @@ class AwoxBot:
     def __init__(self, post_message):
         self.post_message = post_message  # callback
         self.module_list = []
-        self.reddit_channel = None
-        self.reddit_limit = 3072  # number of characters in one post
 
     def register_module(self, module):
         module.app = self
@@ -28,32 +26,41 @@ class AwoxBot:
                     if callable(callback):
                         self.post_message(data['channel'], callback(data))
 
-    def display_reddit_salt(self, content):
+    def display_reddit_salt(self, content, slack_channel, body_limit):
+        """
+        Pretty print reddit posts/comments
+        :param content: Input tuple containing post/comment data
+        :param slack_channel: Slack channel name where data will be sent
+        :param body_limit: Limit post/comment body text to a certain number of characters
+        :return: None
+        """
         display_message = ""
-
         for item in content:
-            # post_data = ('post', post_id, created, permalink, author, post_title, text)
             item_type = item[0]
             url = item[3]
             author = item[4]
             title = item[5]
             text = item[6]
 
-            if len(text) > self.reddit_limit:
-                display_message += "*[Text limited to {} chars]* ".format(self.reddit_limit)
+            if len(text) > body_limit:
+                display_message += "*[Text limited to {} chars]* ".format(body_limit)
 
             if item_type == 'post':
                 display_message += "New post `{}` by `{}` - `{}`\n".format(title, author, url)
-                display_message += "```{}```\n".format(text[:self.reddit_limit])
+                if text:
+                    display_message += "```{}```\n".format(text[:body_limit])
             elif item_type == 'comment':
                 display_message += "New comment by `{}` in `{}` - `{}`\n".format(author, title, url)
-                display_message += "```{}```\n".format(text[:self.reddit_limit])
+                display_message += "```{}```\n".format(text[:body_limit])
 
         if display_message:
-            self.post_message(self.reddit_channel, display_message)
+            self.post_message(slack_channel, display_message)
 
     def monitor_reddit(self):
-        self.reddit_channel = reddit.reddit_channel_name()
+        """
+        Create a new thread where the main reddit listener will execute
+        :return: None
+        """
         reddit_thread = threading.Thread(target=reddit.reddit_main, args=(self.display_reddit_salt,))
         reddit_thread.daemon = True
         reddit_thread.start()
