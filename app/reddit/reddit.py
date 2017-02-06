@@ -1,17 +1,33 @@
 """
 Reddit to Slack Plugin
 """
-import threading
-from app.utils.redditm import redditm
+import os
+from app.utils.redditm.redditm import RedditM
 from . import reddit_mod
+
+reddit_config_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reddit.conf')
+redditm = RedditM(reddit_config_file)
 
 
 @reddit_mod.register_init
 def reddit_init():
-    monitor_reddit()
+    redditm.monitor_reddit(display_reddit_salt)
 
 
-def display_reddit_salt(content, slack_channel, body_limit):
+@reddit_mod.register_cmd(r'^!reddit (conf|info)')
+def reddit_config_file(data):
+    cmd = data['text'].split()
+    if cmd[1] == 'conf':
+        display_message = "Reddit monitor config: ```{}```".format(str(redditm.config_data))
+    else:
+        display_message = '```number of successful requests = {}\n'.format(redditm.requests_ok)
+        display_message += 'number of failed requests = {}\n'.format(redditm.requests_error)
+        display_message += 'last post ID read = {}\n'.format(redditm.last_post_id)
+        display_message += 'last comment ID read = {}```'.format(redditm.last_comment_id)
+    return display_message
+
+
+def display_reddit_salt(content):
     """
     Pretty print reddit posts/comments
     :param content: Input tuple containing post/comment data
@@ -19,6 +35,8 @@ def display_reddit_salt(content, slack_channel, body_limit):
     :param body_limit: Limit post/comment body text to a certain number of characters
     :return: None
     """
+    slack_channel = redditm.config_data['slack_channel']
+    body_limit = redditm.config_data['body_limit']
     display_message = u""
     for item in content:
         item_type = item[0]
@@ -40,13 +58,3 @@ def display_reddit_salt(content, slack_channel, body_limit):
 
     if display_message:
         reddit_mod.talk(slack_channel, display_message)
-
-
-def monitor_reddit():
-    """
-    Create a new thread where the main reddit listener will execute
-    :return: None
-    """
-    reddit_thread = threading.Thread(target=redditm.reddit_main, args=(display_reddit_salt,))
-    reddit_thread.daemon = True
-    reddit_thread.start()
