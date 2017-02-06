@@ -9,10 +9,18 @@ class AwoxMod:
         self.mod_name = mod_name
         self.command_map = {}
         self.app = None
+        self.mod_init = lambda: None
 
     def talk(self, channel, message):
         if self.app:
             return self.app.post_message(channel, message)
+
+    def register_init(self, func):
+        """
+        Decorator for registering a command for initializing the module
+        :return: None
+        """
+        self.mod_init = func
 
     def register_cmd(self, name):
         """

@@ -1,5 +1,5 @@
 """
-reddit.py
+Reddit Monitor
 """
 import os
 import time
@@ -113,7 +113,7 @@ def reddit_main(display_content):
 
     while True:
         # get configuration and account information
-        with open(os.path.join(BASEDIR, 'reddit.conf')) as config_file:
+        with open(os.path.join(BASEDIR, 'redditm.conf')) as config_file:
             config_data = yaml.safe_load(config_file)
 
         if config_data['development']:
