@@ -17,7 +17,7 @@ def reddit_init():
 @reddit_mod.register_cmd(r'^!reddit (conf|info)')
 def reddit_config_file(data):
     cmd = data['text'].split()
-    if cmd[1] == 'conf':
+    if 'conf' in cmd[1]:
         display_message = "Reddit monitor config: ```{}```".format(str(redditm.config_data))
     else:
         display_message = '```number of successful requests = {}\n'.format(redditm.requests_ok)
@@ -31,8 +31,6 @@ def display_reddit_salt(content):
     """
     Pretty print reddit posts/comments
     :param content: Input tuple containing post/comment data
-    :param slack_channel: Slack channel name where data will be sent
-    :param body_limit: Limit post/comment body text to a certain number of characters
     :return: None
     """
     slack_channel = redditm.config_data['slack_channel']

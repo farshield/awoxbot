@@ -18,7 +18,8 @@ class AwoxMod:
     def register_init(self, func):
         """
         Decorator for registering a command for initializing the module
-        :return: None
+        :param func: Init callback
+        :return:
         """
         self.mod_init = func
 
