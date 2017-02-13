@@ -5,27 +5,6 @@ import os
 from app.utils.redditm.redditm import RedditM
 from . import reddit_mod
 
-reddit_config_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reddit.conf')
-redditm = RedditM(reddit_config_file)
-
-
-@reddit_mod.register_init
-def reddit_init():
-    redditm.monitor_reddit(display_reddit_salt)
-
-
-@reddit_mod.register_cmd(r'^!reddit (conf|info)')
-def reddit_config_file(data):
-    cmd = data['text'].split()
-    if 'conf' in cmd[1]:
-        display_message = "Reddit monitor config: ```{}```".format(str(redditm.config_data))
-    else:
-        display_message = '```number of successful requests = {}\n'.format(redditm.requests_ok)
-        display_message += 'number of failed requests = {}\n'.format(redditm.requests_error)
-        display_message += 'last post ID read = {}\n'.format(redditm.last_post_id)
-        display_message += 'last comment ID read = {}```'.format(redditm.last_comment_id)
-    return display_message
-
 
 def display_reddit_salt(content):
     """
@@ -56,3 +35,26 @@ def display_reddit_salt(content):
 
     if display_message:
         reddit_mod.talk(slack_channel, display_message)
+
+redditm = RedditM(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reddit.conf'),
+    display_reddit_salt
+)
+
+
+@reddit_mod.register_init
+def reddit_init():
+    redditm.start()
+
+
+@reddit_mod.register_cmd(r'^!reddit (conf|info)')
+def reddit_config_file(data):
+    cmd = data['text'].split()
+    if 'conf' in cmd[1]:
+        display_message = "Reddit monitor config: ```{}```".format(str(redditm.config_data))
+    else:
+        display_message = '```number of successful requests = {}\n'.format(redditm.requests_ok)
+        display_message += 'number of failed requests = {}\n'.format(redditm.requests_error)
+        display_message += 'last post ID read = {}\n'.format(redditm.last_post_id)
+        display_message += 'last comment ID read = {}```'.format(redditm.last_comment_id)
+    return display_message

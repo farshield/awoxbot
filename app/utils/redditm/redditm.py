@@ -10,11 +10,14 @@ import logging
 import requests
 
 
-class RedditM(object):
+class RedditM(threading.Thread):
     USER_AGENT = 'awoxbot'
 
-    def __init__(self, config_path):
+    def __init__(self, config_path, display_content):
+        threading.Thread.__init__(self)
+        self.daemon = True
         self.config_path = config_path
+        self.display_content = display_content
         self.config_data = None
         self.requests_ok = 0
         self.requests_error = 0
@@ -38,7 +41,7 @@ class RedditM(object):
                     return True
         return False
 
-    def reddit_get_salt(
+    def get_salt(
             self,
             keyword_list=None,
             post_enabled=True,
@@ -123,14 +126,14 @@ class RedditM(object):
 
         return sorted(new_content, key=itemgetter(2)), first_post_id, first_comment_id
 
-    def reddit_main(self, display_content):
+    def main_loop(self):
         while True:
             # re-read configuration file
             self.read_config()
             if self.config_data['development']:
                 print self.config_data
 
-            [new_content, first_post_id, first_comment_id] = self.reddit_get_salt(
+            [new_content, first_post_id, first_comment_id] = self.get_salt(
                 keyword_list=self.config_data['keyword_list'],
                 post_enabled=self.config_data['post_enabled'],
                 comment_enabled=self.config_data['comment_enabled'],
@@ -142,15 +145,8 @@ class RedditM(object):
             self.last_comment_id = first_comment_id
 
             if new_content:
-                display_content(new_content)
+                self.display_content(new_content)
             time.sleep(self.config_data['cycle_time'])
 
-    def monitor_reddit(self, display_func):
-        """
-        Create a new thread where the main reddit listener will execute
-        :param display_func: Display function
-        :return: None
-        """
-        reddit_thread = threading.Thread(target=self.reddit_main, args=(display_func,))
-        reddit_thread.daemon = True
-        reddit_thread.start()
+    def run(self):
+        self.main_loop()
