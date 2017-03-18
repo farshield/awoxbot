@@ -5,6 +5,7 @@ comment_enabled: False
 keyword_list:
     - 'key1'
     - 'key2'
+ignore_list: !!null
 post_limit: 5
 cycle_time: 10
 body_limit: 3072

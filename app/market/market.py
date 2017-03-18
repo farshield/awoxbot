@@ -37,7 +37,10 @@ def itemtoprice(item):
             raise ZeroDivisionError
         import locale
         locale.setlocale(locale.LC_ALL, "")
-        formattedprice = locale.format('%d', price, True)
+        if price < 1e6:
+            formattedprice = locale.format('%.2f', price, True)
+        else:
+            formattedprice = locale.format('%d', price, True)
         return item_name, formattedprice, price
     except Exception:
         return None, None, None

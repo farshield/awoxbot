@@ -44,6 +44,7 @@ class RedditM(threading.Thread):
     def get_salt(
             self,
             keyword_list=None,
+            ignore_list=None,
             post_enabled=True,
             comment_enabled=True,
             last_post_id=0,
@@ -81,12 +82,19 @@ class RedditM(threading.Thread):
                             text = child['data']['selftext']
 
                             post_data = ('post', post_id, created, permalink, author, post_title, text)
-                            if keyword_list:
-                                if RedditM.find_keywords(keyword_list, post_title) or \
-                                        RedditM.find_keywords(keyword_list, text):
+
+                            ignore_post = False
+                            if ignore_list:
+                                if RedditM.find_keywords(ignore_list, post_title):
+                                    ignore_post = True
+
+                            if ignore_post is False:
+                                if keyword_list:
+                                    if RedditM.find_keywords(keyword_list, post_title) or \
+                                            RedditM.find_keywords(keyword_list, text):
+                                        new_content.append(post_data)
+                                else:
                                     new_content.append(post_data)
-                            else:
-                                new_content.append(post_data)
 
         time.sleep(.2)
 
@@ -135,6 +143,7 @@ class RedditM(threading.Thread):
 
             [new_content, first_post_id, first_comment_id] = self.get_salt(
                 keyword_list=self.config_data['keyword_list'],
+                ignore_list=self.config_data['ignore_list'],
                 post_enabled=self.config_data['post_enabled'],
                 comment_enabled=self.config_data['comment_enabled'],
                 last_post_id=self.last_post_id,
